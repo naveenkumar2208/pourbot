@@ -39,6 +39,21 @@ $("home").onclick = act(async () => {
   const lost = state.current > 2 ? "\n\nThis abandons the current run; you will start again from measuring." : "";
   if (confirm(`${verb} the arm to home?\n\nAbout ${p.seconds} s, largest joint change ${p.biggest_joint_change}\u00b0.\n${p.note}.${lost}`)) await post("/api/home/run");
 });
+$("gripopen").onclick = act(async () => {
+  if (state.status.holding || state.fingers_around) {
+    if (!confirm("The fingers may be holding a container. Opening could drop it. Open anyway?")) return;
+  }
+  await post("/api/gripper/open");
+});
+$("gripclose").onclick = act(async () => {
+  if (confirm("Close the gripper now? Keep your hands clear of the fingers.")) await post("/api/gripper/close");
+});
+$("back").onclick = act(async () => {
+  const prev = state.steps[state.current - 1];
+  const moves = prev.kind === "motion" || prev.kind === "gripper";
+  const detail = !moves ? "Nothing moves." : prev.kind === "motion" ? "The arm retraces that move in reverse." : prev.id.endsWith("grab") ? "The gripper opens." : prev.id.endsWith("release") ? "The gripper closes." : "Nothing moves.";
+  if (confirm(`Go back to "${prev.title}"?\n\n${detail}`)) await post("/api/back");
+});
 $("restart").onclick = act(async () => {
   if (confirm("Restart from the first step? Nothing moves, but all measurements and plans are discarded.")) await post("/api/restart");
 });
@@ -58,6 +73,13 @@ function render() {
   $("motion").textContent = st.moving ? "Arm moving" : "Arm still";
   $("grip").textContent = st.gripper_position == null ? "Gripper -" : `Gripper ${(st.gripper_position / 10).toFixed(0)} mm` + (st.holding ? ", holding" : "");
   $("stopped").hidden = !s.stopped;
+  const rec = s.recording;
+  $("recording").hidden = !rec || !rec.enabled;
+  if (rec && rec.enabled) {
+    $("recording").className = "pill " + (rec.error ? "bad" : rec.active ? "busy" : "");
+    $("recording").textContent = rec.error ? `Not saving: ${rec.error}` :
+      rec.active ? `Recording ${rec.samples}${rec.dropped ? `, ${rec.dropped} lost` : ""}` : "Recorder ready";
+  }
 
   $("steps").innerHTML = s.steps.map((x, i) =>
     `<li class="${x.state}" ${i === s.current ? 'aria-current="step"' : ""}><span class="n">${x.state === "done" ? "✓" : i + 1}</span>${esc(x.title)}</li>`).join("");
@@ -96,6 +118,12 @@ function render() {
     step.kind === "check" ? "Confirm" : step.kind === "plan" ? "Rehearse now" :
     step.kind === "choose" ? "Use these potions" : "Measure now";
   $("restart").disabled = !!s.busy || s.playing;
+  for (const id of ["gripopen", "gripclose"]) {
+    $(id).disabled = !!s.manual_blocked;
+    $(id).title = s.manual_blocked || "";
+  }
+  $("back").disabled = !!s.back_blocked;
+  $("back").title = s.back_blocked || "Undo the last finished step";
   $("home").disabled = !!s.home_blocked;
   $("home").title = s.home_blocked || "Move the arm to the saved home position";
 

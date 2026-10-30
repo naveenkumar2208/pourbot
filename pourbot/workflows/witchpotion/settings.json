@@ -53,5 +53,8 @@
       "base_diameter_mm": 100,
       "expected_width_mm": 47
     }
-  ]
+  ],
+  "recording": {
+    "rate_hz": 5
+  }
 }

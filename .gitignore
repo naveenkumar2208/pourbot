@@ -9,3 +9,6 @@ __pycache__/
 # Run records and camera captures: large, and images can show people in the room
 pourbot/runs.sqlite*
 captures/
+
+# Exported training data
+data/

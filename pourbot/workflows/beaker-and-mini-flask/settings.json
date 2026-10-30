@@ -1,0 +1,82 @@
+{
+  "arm": "arm",
+  "gripper": "gripper",
+  "motion": "builtin",
+  "cameras": [
+    "cam"
+  ],
+  "arm_speed_deg_s": 5,
+  "camera_sideways_correction_mm": -13,
+  "cup": {
+    "outer_diameter_mm": 100
+  },
+  "grasp": {
+    "neck_depth_in_gripper_mm": 38,
+    "approach_standoff_mm": 55,
+    "lift_mm": 110,
+    "width_tolerance_mm": 15
+  },
+  "pour": {
+    "lip_inset_from_cup_center_mm": 10,
+    "lip_toward_base_mm": 0,
+    "mouth_turn_toward_base_deg": 0,
+    "min_lip_above_rim_mm": 50,
+    "flask_clearance_mm": 20,
+    "stages_deg": [
+      60,
+      100,
+      135
+    ],
+    "waypoint_every_deg": 5
+  },
+  "recording": {
+    "rate_hz": 5
+  },
+  "overhead": {
+    "camera_height_mm": 480
+  },
+  "vessels": [
+    {
+      "name": "Small beaker",
+      "rim_height_mm": [
+        45,
+        68
+      ],
+      "grip_height_above_table_mm": 38,
+      "base_diameter_mm": 50,
+      "expected_width_mm": 48,
+      "min_lip_above_rim_mm": 70
+    },
+    {
+      "name": "Mini flask",
+      "rim_height_mm": [
+        69,
+        88
+      ],
+      "grip_height_above_table_mm": 50,
+      "base_diameter_mm": 56,
+      "expected_width_mm": 35,
+      "min_lip_above_rim_mm": 70
+    },
+    {
+      "name": "Small flask",
+      "rim_height_mm": [
+        89,
+        125
+      ],
+      "grip_height_above_table_mm": 38,
+      "base_diameter_mm": 70,
+      "expected_width_mm": 45
+    },
+    {
+      "name": "Tall flask",
+      "rim_height_mm": [
+        130,
+        200
+      ],
+      "grip_height_above_table_mm": 135,
+      "base_diameter_mm": 100,
+      "expected_width_mm": 47
+    }
+  ]
+}

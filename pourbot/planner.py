@@ -78,7 +78,9 @@ class Layout:
         a = math.radians(deg)
         lowest = min(-(side * self.base_r - self.mouth_r) * math.sin(a) - self.flask_height * math.cos(a)
                      for side in (-1, 1))
-        return max(p["min_lip_above_rim_mm"], -lowest + p["flask_clearance_mm"])
+        # A short container is gripped near its lip, which brings the gripper body closer to the cup.
+        minimum = self.flask.get("min_lip") or p["min_lip_above_rim_mm"]
+        return max(minimum, -lowest + p["flask_clearance_mm"])
 
     def pour_pose(self, deg):
         """Gripper pose with the flask tilted `deg` and the pouring lip held over the cup.

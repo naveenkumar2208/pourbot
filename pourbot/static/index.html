@@ -21,6 +21,9 @@
   <div id="connection" class="pill">Connecting</div>
   <div id="motion" class="pill">-</div>
   <div id="grip" class="pill">-</div>
+  <div id="recording" class="pill" hidden></div>
+  <button id="gripopen" class="ghost">Open gripper</button>
+  <button id="gripclose" class="ghost">Close gripper</button>
   <button id="home" class="ghost">Home</button>
   <button id="stop" class="stop" title="Space bar also stops">STOP <kbd>Space</kbd></button>
 </header>
@@ -47,6 +50,7 @@
         <div id="failure" class="banner danger" hidden></div>
         <div class="actions">
           <button id="play" class="play">&#9654; Brew potion</button>
+          <button id="back" class="ghost">&#9664; Back one step</button>
           <button id="run" class="primary">Run this step</button>
           <button id="restart" class="ghost">Restart</button>
         </div>

@@ -11,6 +11,7 @@ import asyncio
 import json
 import sys
 import time
+import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -26,6 +27,7 @@ from viam.components.camera import Camera
 from viam.components.gripper import Gripper
 from viam.proto.common import Pose, PoseInFrame
 
+from act_recorder import ActRecorder
 from geometry import pose_to_tf
 from helpers import connect
 from perception import SETTINGS, annotate, fuse, measure
@@ -125,7 +127,10 @@ class App:
         self.last_sample = None
         self.camera_lock = asyncio.Lock()
         self.frames = {}
+        self.frame_times = {}
         self.last_view = 0.0
+        self.grip_command = 1.0
+        self.act = ActRecorder(log=self.log)
         self.reset_state()
         self.record = RunLog(on_error=self.log)
         self.begin_record()
@@ -140,6 +145,7 @@ class App:
         self.nudges = {}
         self.scene = None
         self.selection = []
+        self.brew_id = None
         self.first_positions = []
         self.plans = {}
         self.start_joints = None
@@ -215,9 +221,46 @@ class App:
                             images, _ = await Camera.from_robot(self.machine, name).get_images(
                                 filter_source_names=["color"], timeout=8)
                         self.frames[name] = images[0].data
+                        self.frame_times[name] = time.time()
                     except Exception:
                         pass
-            await asyncio.sleep(0.35)
+            await asyncio.sleep(0.02 if self.act.active else 0.35)
+
+    async def recording_loop(self):
+        """Samples joints and the newest camera frame at a steady rate while a pour is being recorded."""
+        period = 1 / SETTINGS["recording"]["rate_hz"]
+        previous, previous_time = None, 0.0
+        next_tick = time.time()
+        while True:
+            next_tick = max(next_tick + period, time.time())
+            await asyncio.sleep(max(0, next_tick - time.time()))
+            if not self.act.active or self.machine is None:
+                previous = None
+                continue
+            self.last_view = time.time()
+            try:
+                joints = list(self.sim_joints) if self.dry_run and self.sim_joints else \
+                    list((await self.arm.get_joint_positions(timeout=1)).values)
+            except Exception:
+                self.act.dropped += 1
+                continue
+            now = time.time()
+            velocity = [(a - b) / (now - previous_time) for a, b in zip(joints, previous)] if previous else [0.0] * len(joints)
+            previous, previous_time = joints, now
+            position = self.status["gripper_position"]
+            gripper = position / 850 if position is not None else self.grip_command
+            frames = {n: (self.frames[n], now - self.frame_times[n]) for n in SETTINGS["cameras"] if n in self.frames}
+            self.act.add(self.busy, joints, velocity, gripper, self.grip_command, frames)
+
+    def begin_episode(self, sid):
+        vid = sid.split(":")[0]
+        v = self.vessel(vid)
+        order = self.selection.index(vid) + 1
+        task = dict(container_id=vid, container_type=v["profile"], pour_order=order, pours_in_brew=len(self.selection),
+                    container=dict(x=v["x"], y=v["y"], rim_z=v["rim_z"], radius=v["radius"]),
+                    cup=dict(x=self.scene["cup"]["x"], y=self.scene["cup"]["y"], rim_z=self.scene["cup"]["rim_z"]))
+        self.act.begin(task, jsonable(self.scene), SETTINGS, self.dry_run, SETTINGS["recording"]["rate_hz"],
+                       SETTINGS["cameras"], self.brew_id)
 
     def busy_moving(self):
         return self.busy is not None and kind_of(self.busy) in ("motion", "gripper")
@@ -280,14 +323,94 @@ class App:
             cup_half=SETTINGS["cup"]["outer_diameter_mm"] / 2,
             poured=sum(f"{v}:tilt3" in self.done for v in self.selection),
             pouring=bool(self.busy and base_of(self.busy) in ("tilt1", "tilt2", "tilt3")),
+            recording=self.act.status(),
             can_change_positions=not self.pouring_started(),
             cameras=SETTINGS["cameras"], log=self.log_lines[-60:], progress=self.progress,
             playing=self.playing,
-            home_saved=HOME_FILE.exists(), home_blocked=self.home_blocked(),
+            home_saved=HOME_FILE.exists(), home_blocked=self.home_blocked(), manual_blocked=self.manual_blocked(),
+            back_blocked=self.back_blocked(), fingers_around=self.fingers_around_container(),
             fresh_measurement=bool(self.overlays) and not self.busy and self.current > 0
             and kind_of(ids[self.current - 1]) in ("perceive", "plan", "choose"),
             speed=SETTINGS["arm_speed_deg_s"], overlays=sorted(self.overlays),
             checks=self.checks))
+
+    # ----- manual controls -----
+
+    def manual_blocked(self):
+        if self.playing:
+            return "The brew is running"
+        if self.busy:
+            return "A step is running"
+        if not self.status["connected"]:
+            return "Robot is not connected"
+        return None
+
+    def back_blocked(self):
+        if self.manual_blocked():
+            return self.manual_blocked()
+        if self.stopped:
+            return "Clear the stop first"
+        if self.current == 0:
+            return "This is the first step"
+        return None
+
+    async def manual_gripper(self, close):
+        """Gripper buttons: move the fingers without changing the sequence."""
+        action = "Close" if close else "Open"
+        self.record.step_started("gripper-button", f"{action} gripper button", "gripper")
+        try:
+            if not self.dry_run:
+                await (self.gripper.grab(timeout=20) if close else self.gripper.open(timeout=20))
+            else:
+                await asyncio.sleep(0.3)
+            self.record.step_finished("done")
+            self.log(f"Gripper {'closed' if close else 'opened'} by button" + (" (dry run: not moved)" if self.dry_run else ""))
+        except Exception as error:
+            self.record.step_finished("failed", str(error))
+            self.log(f"FAILED: Gripper button: {error}")
+        finally:
+            self.busy = None
+
+    async def go_back(self):
+        """Undo the last finished step: retrace a move exactly, or reverse a grip."""
+        previous = self.ids()[self.current - 1]
+        kind, base = kind_of(previous), base_of(previous)
+        self.record.step_started("back", f"Back from {previous}", kind)
+        self.log(f"Going back: undoing {previous}")
+        self.act.end("abandoned")
+        try:
+            if kind == "motion":
+                plan = self.plans.get(previous)
+                if plan is None:
+                    raise NotStarted("That move has no plan to retrace.")
+                self.plans["back"] = dict(waypoints=plan["waypoints"][::-1], targets=[])
+                await self.run_motion("back")
+            elif kind == "gripper" and base == "grab":
+                if not self.dry_run:
+                    await self.gripper.open(timeout=20)
+            elif kind == "gripper" and base == "release":
+                if not self.dry_run:
+                    await self.gripper.grab(timeout=20)
+            if base == "rehearse":
+                self.forget_plans()
+            self.done.pop(previous, None)
+            self.current -= 1
+            self.failed = None
+            self.record.step_finished("done")
+            self.log(f"Back at: {next(s[2] for s in self.steps() if s[0] == previous)}")
+        except asyncio.CancelledError:
+            self.record.step_finished("cancelled")
+            raise
+        except NotStarted as error:
+            self.record.step_finished("refused", str(error))
+            self.log(f"FAILED: {error}")
+        except Exception as error:
+            self.record.step_finished("failed", str(error))
+            self.log(f"FAILED: {error}")
+            await self.halt_after_failure()
+        finally:
+            self.busy = None
+            self.progress = None
 
     # ----- home -----
 
@@ -329,6 +452,7 @@ class App:
             result = await self.run_motion("button")
             self.record.step_finished("done", result)
             self.log(f"Home button: {result}")
+            self.act.end("abandoned")
             checks, sim = self.checks, self.sim_joints
             self.reset_state()
             self.checks, self.sim_joints = checks, sim
@@ -541,26 +665,42 @@ class App:
         title = next(s[2] for s in self.steps() if s[0] == sid)
         self.log(f"Started: {title}")
         self.record.step_started(sid, title, kind_of(sid))
+        base = base_of(sid)
+        if base == "rehearse":
+            self.brew_id = uuid.uuid4().hex
+        if base == "open" and ":" in sid:
+            self.grip_command = 1.0
+            self.begin_episode(sid)
+        elif base == "grab":
+            self.grip_command = 0.0
+        elif base == "release":
+            self.grip_command = 1.0
         try:
             result = await self.run_step(sid)
         except asyncio.CancelledError:
             self.log("Step cancelled")
             self.record.step_finished("cancelled")
+            self.act.end("stopped")
             self.busy = None
             raise
         except PlanningError as error:
             self.record.step_finished("failed", str(error))
+            self.act.end("failed")
             self.fail(sid, f"Planning failed: {error}")
         except NotStarted as error:
             self.record.step_finished("refused", str(error))
+            self.act.end("failed")
             self.fail(sid, str(error))
         except Exception as error:
             self.record.step_finished("failed", str(error))
+            self.act.end("failed")
             self.fail(sid, str(error))
             if kind_of(sid) in ("motion", "gripper"):
                 await self.halt_after_failure()
         else:
             self.record.step_finished("done", result)
+            if base == "home":
+                self.act.end("completed")
             self.done[sid] = result
             self.log(f"Finished: {result}")
             self.current += 1
@@ -588,6 +728,7 @@ class App:
     async def stop(self, reason):
         self.stopped = True
         self.playing = False
+        self.act.end("stopped")
         self.log(f"STOP: {reason}")
         if self.task and not self.task.done():
             self.task.cancel()
@@ -609,10 +750,12 @@ app_state = None
 
 @asynccontextmanager
 async def lifespan(_):
-    tasks = [asyncio.create_task(app_state.poll()), asyncio.create_task(app_state.camera_loop())]
+    tasks = [asyncio.create_task(job()) for job in (app_state.poll, app_state.camera_loop, app_state.recording_loop)]
     yield
     for task in tasks:
         task.cancel()
+    app_state.act.end("abandoned")
+    await asyncio.to_thread(app_state.act.flush)
 
 
 api = FastAPI(lifespan=lifespan)
@@ -776,6 +919,30 @@ async def home_run():
     return {"ok": True}
 
 
+@api.post("/api/gripper/{action}")
+async def gripper_button(action: str):
+    if action not in ("open", "close"):
+        raise HTTPException(404)
+    async with app_state.lock:
+        blocked = app_state.manual_blocked()
+        if blocked:
+            raise HTTPException(409, blocked)
+        app_state.busy = "gripper-button"
+        app_state.task = asyncio.create_task(app_state.manual_gripper(action == "close"))
+    return {"ok": True}
+
+
+@api.post("/api/back")
+async def back():
+    async with app_state.lock:
+        blocked = app_state.back_blocked()
+        if blocked:
+            raise HTTPException(409, blocked)
+        app_state.busy = "back"
+        app_state.task = asyncio.create_task(app_state.go_back())
+    return {"ok": True}
+
+
 @api.post("/api/stop")
 async def stop():
     await app_state.stop("Operator pressed STOP")
@@ -800,6 +967,7 @@ async def clear_stop():
 async def restart():
     if app_state.busy or app_state.playing:
         raise HTTPException(409, "Stop the current step first")
+    app_state.act.end("abandoned")
     app_state.record.end_run(app_state.snapshot())
     app_state.reset_state()
     app_state.begin_record()

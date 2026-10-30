@@ -18,7 +18,7 @@ from geometry import pose_to_tf
 SETTINGS = json.loads((Path(__file__).parent / "settings.json").read_text())
 
 # Anything outside these real-world sizes (mm) is not the flask or cup, whatever its color.
-FLASK_RIM_HEIGHT, FLASK_MOUTH_RADIUS = (70, 220), (14, 45)
+FLASK_RIM_HEIGHT, FLASK_MOUTH_RADIUS = (45, 220), (14, 45)
 CUP_RIM_HEIGHT, CUP_RADIUS = (80, 140), (35, 60)
 
 
@@ -230,8 +230,12 @@ def analyze(frame):
         cx, cy = st[0] + st[2] / 2, st[1] + st[3] / 2
         return not (cup_box[0] <= cx <= cup_box[2] and cup_box[1] <= cy <= cup_box[3])
 
-    for mask, stats in blobs((blue > 0) & workspace, 800):
-        if not outside_cup(stats):
+    pieces = [(m, s) for m, s in blobs((blue > 0) & workspace, 150) if outside_cup(s)]
+    for mask in group_by_position(pieces, world, height):
+        # Depth edges cut the thin rim out of the pieces, so size the mouth from all the blue around them.
+        near = cv2.dilate(mask.astype(np.uint8), np.ones((9, 9), np.uint8)) > 0
+        mask = near & (blue > 0) & valid & (height > 15)
+        if mask.sum() < 500:
             continue
         mouth = measure_mouth(frame, world, height, n, c, mask)
         if FLASK_RIM_HEIGHT[0] <= mouth["height"] <= FLASK_RIM_HEIGHT[1] and FLASK_MOUTH_RADIUS[0] <= mouth["radius"] <= FLASK_MOUTH_RADIUS[1]:
@@ -245,6 +249,21 @@ def analyze(frame):
     obs.obstacles = find_depth_obstacles(world, height, keep_out)
     obs.frame = frame
     return obs
+
+
+def group_by_position(pieces, world, height):
+    """A taped rim seen from above breaks into pieces. Pieces standing at the same spot are one container."""
+    spots = [np.median(world[m][:, :2], axis=0) for m, _ in pieces]
+    groups = []
+    for index, (mask, _) in enumerate(pieces):
+        for group in groups:
+            if any(np.hypot(*(spots[index] - spots[other])) < 55 for other in group["members"]):
+                group["members"].append(index)
+                group["mask"] = group["mask"] | mask
+                break
+        else:
+            groups.append(dict(members=[index], mask=mask))
+    return [g["mask"] for g in groups]
 
 
 def annotate(frame, scene):
@@ -348,5 +367,6 @@ def vessel_type(height):
         low, high = kind["rim_height_mm"]
         if low <= height <= high:
             return dict(profile=kind["name"], grip_height=kind["grip_height_above_table_mm"],
-                        base_diameter=kind["base_diameter_mm"], expected_width=kind["expected_width_mm"], usable=True)
+                        base_diameter=kind["base_diameter_mm"], expected_width=kind["expected_width_mm"],
+                        min_lip=kind.get("min_lip_above_rim_mm"), usable=True)
     return dict(profile=None, usable=False)
