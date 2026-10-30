@@ -2,14 +2,11 @@
   "arm": "arm",
   "gripper": "gripper",
   "motion": "builtin",
-  "cameras": ["cam"],
+  "cameras": [
+    "cam"
+  ],
   "arm_speed_deg_s": 5,
   "camera_sideways_correction_mm": -13,
-
-  "flask": {
-    "grip_below_mouth_mm": 58,
-    "base_diameter_mm": 70
-  },
   "cup": {
     "outer_diameter_mm": 100
   },
@@ -17,7 +14,6 @@
     "neck_depth_in_gripper_mm": 38,
     "approach_standoff_mm": 55,
     "lift_mm": 110,
-    "expected_neck_width_mm": 50,
     "width_tolerance_mm": 15
   },
   "pour": {
@@ -26,11 +22,36 @@
     "mouth_turn_toward_base_deg": 0,
     "min_lip_above_rim_mm": 50,
     "flask_clearance_mm": 20,
-    "stages_deg": [60, 100, 135],
-    "waypoint_every_deg": 5,
-    "drain_seconds": 10
+    "stages_deg": [
+      60,
+      100,
+      135
+    ],
+    "waypoint_every_deg": 5
   },
   "overhead": {
     "camera_height_mm": 480
-  }
+  },
+  "vessels": [
+    {
+      "name": "Small flask",
+      "rim_height_mm": [
+        80,
+        125
+      ],
+      "grip_height_above_table_mm": 38,
+      "base_diameter_mm": 70,
+      "expected_width_mm": 45
+    },
+    {
+      "name": "Tall flask",
+      "rim_height_mm": [
+        130,
+        200
+      ],
+      "grip_height_above_table_mm": 135,
+      "base_diameter_mm": 100,
+      "expected_width_mm": 47
+    }
+  ]
 }

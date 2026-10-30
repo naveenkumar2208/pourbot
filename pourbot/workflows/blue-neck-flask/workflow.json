@@ -1,0 +1,752 @@
+{
+  "name": "blue-neck-flask",
+  "saved_at": "2026-10-30T12:24:19-0700",
+  "episode": {
+    "dry_run": false,
+    "scene": {
+      "problems": [],
+      "disagreement_mm": {},
+      "cameras": [
+        "cam"
+      ],
+      "table_z": 4.843190284233749,
+      "table_tilt_deg": 1.5597984293654885,
+      "obstacles": [],
+      "flask": {
+        "x": 586.8748133591639,
+        "y": 54.79949909114489,
+        "rim_z": 101.15872275043652,
+        "radius": 23.779018138040684,
+        "height": 97.17642194365845,
+        "fit_error": 0.0,
+        "measured": {
+          "x": 586.8748133591639,
+          "y": 54.79949909114489,
+          "rim_z": 101.15872275043652
+        }
+      },
+      "cup": {
+        "x": 750.4546342141949,
+        "y": 85.07437937534951,
+        "rim_z": 105.79502614825346,
+        "radius": 47.24485760012681,
+        "height": 105.9723490561315,
+        "fit_error": 1.3624712143218467,
+        "measured": {
+          "x": 750.4546342141949,
+          "y": 85.07437937534951,
+          "rim_z": 105.79502614825346
+        }
+      }
+    },
+    "corrections": {},
+    "log": [
+      {
+        "t": "12:15:20",
+        "text": "Started: Find flask and cup"
+      },
+      {
+        "t": "12:15:24",
+        "text": "Finished: Flask (568, 63), mouth 97 mm. Cup (759, 75), rim 100 mm. Overhead move planned."
+      },
+      {
+        "t": "12:15:47",
+        "text": "Home button: Reached target (within 0.04\u00b0)."
+      },
+      {
+        "t": "12:15:49",
+        "text": "Started: Find flask and cup"
+      },
+      {
+        "t": "12:15:54",
+        "text": "Finished: Flask (571, 63), mouth 95 mm. Cup (735, 89), rim 97 mm. Overhead move planned."
+      },
+      {
+        "t": "12:15:57",
+        "text": "Started: Look from above"
+      },
+      {
+        "t": "12:16:08",
+        "text": "Finished: Reached target (within 0.04\u00b0)."
+      },
+      {
+        "t": "12:16:13",
+        "text": "Started: Measure again"
+      },
+      {
+        "t": "12:16:17",
+        "text": "FAILED: Connection lost"
+      },
+      {
+        "t": "12:16:17",
+        "text": "Lost contact with the robot; retrying"
+      },
+      {
+        "t": "12:16:30",
+        "text": "Connected to the robot"
+      },
+      {
+        "t": "12:16:39",
+        "text": "Started: Measure again"
+      },
+      {
+        "t": "12:16:43",
+        "text": "FAILED: Connection lost"
+      },
+      {
+        "t": "12:16:43",
+        "text": "Lost contact with the robot; retrying"
+      },
+      {
+        "t": "12:16:51",
+        "text": "Connected to the robot"
+      },
+      {
+        "t": "12:16:54",
+        "text": "Started: Measure again"
+      },
+      {
+        "t": "12:16:58",
+        "text": "Finished: Flask (584, 62), mouth 102 mm. Cup (750, 85), rim 106 mm. Flask estimate moved 13.1 mm from the first view."
+      },
+      {
+        "t": "12:17:51",
+        "text": "Started: Rehearse whole pour"
+      },
+      {
+        "t": "12:17:54",
+        "text": "Planned pregrasp: 23 waypoints in 2.4s"
+      },
+      {
+        "t": "12:17:54",
+        "text": "Planned approach: 23 waypoints in 0.6s"
+      },
+      {
+        "t": "12:17:55",
+        "text": "Planned lift: 46 waypoints in 0.3s"
+      },
+      {
+        "t": "12:17:55",
+        "text": "Planned carry: 2 waypoints in 0.1s"
+      },
+      {
+        "t": "12:17:55",
+        "text": "Planned tilt1: 13 waypoints"
+      },
+      {
+        "t": "12:17:56",
+        "text": "Planned tilt2: 9 waypoints"
+      },
+      {
+        "t": "12:17:56",
+        "text": "Planned tilt3: 8 waypoints"
+      },
+      {
+        "t": "12:17:56",
+        "text": "Finished: All steps planned with no collisions. About 2.4 min of motion at 5\u00b0/s."
+      },
+      {
+        "t": "12:17:59",
+        "text": "Started: Open gripper"
+      },
+      {
+        "t": "12:18:02",
+        "text": "Finished: Gripper open."
+      },
+      {
+        "t": "12:18:07",
+        "text": "Started: Move behind flask"
+      },
+      {
+        "t": "12:18:23",
+        "text": "Finished: Reached target (within 0.04\u00b0)."
+      },
+      {
+        "t": "12:18:28",
+        "text": "Started: Slide around flask"
+      },
+      {
+        "t": "12:18:29",
+        "text": "Finished: Reached target (within 0.04\u00b0)."
+      },
+      {
+        "t": "12:18:32",
+        "text": "Started: Grip the flask"
+      },
+      {
+        "t": "12:18:33",
+        "text": "Finished: Gripping at 45 mm."
+      },
+      {
+        "t": "12:18:37",
+        "text": "Started: Lift flask"
+      },
+      {
+        "t": "12:18:39",
+        "text": "Finished: Reached target (within 0.04\u00b0)."
+      },
+      {
+        "t": "12:18:48",
+        "text": "Started: Carry over cup"
+      },
+      {
+        "t": "12:18:51",
+        "text": "Finished: Reached target (within 0.04\u00b0)."
+      },
+      {
+        "t": "12:18:54",
+        "text": "Started: Tilt: start"
+      },
+      {
+        "t": "12:18:59",
+        "text": "Finished: Reached target (within 0.04\u00b0)."
+      },
+      {
+        "t": "12:19:05",
+        "text": "Started: Tilt: pouring"
+      },
+      {
+        "t": "12:19:09",
+        "text": "Finished: Reached target (within 0.04\u00b0)."
+      },
+      {
+        "t": "12:19:12",
+        "text": "Started: Tilt: empty"
+      },
+      {
+        "t": "12:19:16",
+        "text": "Finished: Reached target (within 0.04\u00b0)."
+      },
+      {
+        "t": "12:19:17",
+        "text": "Started: Let it drain"
+      },
+      {
+        "t": "12:19:27",
+        "text": "Finished: Drain time finished."
+      },
+      {
+        "t": "12:19:28",
+        "text": "Started: Tilt back upright"
+      },
+      {
+        "t": "12:19:41",
+        "text": "Finished: Reached target (within 0.04\u00b0)."
+      },
+      {
+        "t": "12:19:43",
+        "text": "Started: Carry back"
+      },
+      {
+        "t": "12:19:45",
+        "text": "Finished: Reached target (within 0.04\u00b0)."
+      },
+      {
+        "t": "12:19:47",
+        "text": "Started: Set flask down"
+      },
+      {
+        "t": "12:19:49",
+        "text": "Finished: Reached target (within 0.04\u00b0)."
+      },
+      {
+        "t": "12:19:51",
+        "text": "Started: Release flask"
+      },
+      {
+        "t": "12:19:52",
+        "text": "Finished: Gripper open."
+      },
+      {
+        "t": "12:19:56",
+        "text": "Started: Back away"
+      },
+      {
+        "t": "12:19:57",
+        "text": "Finished: Reached target (within 0.04\u00b0)."
+      },
+      {
+        "t": "12:19:59",
+        "text": "Started: Back to overhead view"
+      },
+      {
+        "t": "12:20:14",
+        "text": "Finished: Reached target (within 0.04\u00b0)."
+      },
+      {
+        "t": "12:20:19",
+        "text": "Started: Check final position"
+      },
+      {
+        "t": "12:20:22",
+        "text": "Finished: Flask (587, 55), mouth 101 mm. Cup (750, 85), rim 106 mm. Flask is 8.1 mm from where it started."
+      }
+    ],
+    "steps": [
+      {
+        "id": "check",
+        "title": "Safety check",
+        "state": "done",
+        "result": "Operator confirmed the workspace.",
+        "plan": null
+      },
+      {
+        "id": "startpos",
+        "title": "Go to home",
+        "state": "done",
+        "result": "At home.",
+        "plan": null
+      },
+      {
+        "id": "survey",
+        "title": "Find flask and cup",
+        "state": "done",
+        "result": "Flask (571, 63), mouth 95 mm. Cup (735, 89), rim 97 mm. Overhead move planned.",
+        "plan": null
+      },
+      {
+        "id": "overhead",
+        "title": "Look from above",
+        "state": "done",
+        "result": "Reached target (within 0.04\u00b0).",
+        "plan": {
+          "note": "Camera looks straight down",
+          "waypoints": 2,
+          "seconds": 21.6,
+          "biggest_joint_change": 107.9,
+          "biggest_hop": 107.9,
+          "targets": [
+            [
+              653.0320537839273,
+              75.80572438543535,
+              477.707004127863
+            ]
+          ]
+        }
+      },
+      {
+        "id": "closeup",
+        "title": "Measure again",
+        "state": "done",
+        "result": "Flask (584, 62), mouth 102 mm. Cup (750, 85), rim 106 mm. Flask estimate moved 13.1 mm from the first view.",
+        "plan": null
+      },
+      {
+        "id": "rehearse",
+        "title": "Rehearse whole pour",
+        "state": "done",
+        "result": "All steps planned with no collisions. About 2.4 min of motion at 5\u00b0/s.",
+        "plan": null
+      },
+      {
+        "id": "open",
+        "title": "Open gripper",
+        "state": "done",
+        "result": "Gripper open.",
+        "plan": null
+      },
+      {
+        "id": "pregrasp",
+        "title": "Move behind flask",
+        "state": "done",
+        "result": "Reached target (within 0.04\u00b0).",
+        "plan": {
+          "note": "Same orientation you taught, fingers open behind the flask",
+          "waypoints": 23,
+          "seconds": 33.6,
+          "biggest_joint_change": 159.1,
+          "biggest_hop": 22.9,
+          "targets": [
+            [
+              491.8869029693965,
+              57.98938807264644,
+              55.65512502482802
+            ]
+          ]
+        }
+      },
+      {
+        "id": "approach",
+        "title": "Slide around flask",
+        "state": "done",
+        "result": "Reached target (within 0.04\u00b0).",
+        "plan": {
+          "note": "Straight along the fingers until the flask is between them",
+          "waypoints": 23,
+          "seconds": 1.5,
+          "biggest_joint_change": 7.3,
+          "biggest_hop": 0.3,
+          "targets": [
+            [
+              546.4167394084444,
+              60.57425531519489,
+              48.96069455845672
+            ]
+          ]
+        }
+      },
+      {
+        "id": "grab",
+        "title": "Grip the flask",
+        "state": "done",
+        "result": "Gripping at 45 mm.",
+        "plan": null
+      },
+      {
+        "id": "lift",
+        "title": "Lift flask",
+        "state": "done",
+        "result": "Reached target (within 0.04\u00b0).",
+        "plan": {
+          "note": "Straight up, flask stays upright",
+          "waypoints": 46,
+          "seconds": 3.7,
+          "biggest_joint_change": 18.5,
+          "biggest_hop": 0.4,
+          "targets": [
+            [
+              546.4167394084444,
+              60.57425531519489,
+              158.96069455845674
+            ]
+          ]
+        }
+      },
+      {
+        "id": "carry",
+        "title": "Carry over cup",
+        "state": "done",
+        "result": "Reached target (within 0.04\u00b0).",
+        "plan": {
+          "note": "Flask stays upright while it travels above the cup",
+          "waypoints": 2,
+          "seconds": 5.0,
+          "biggest_joint_change": 25.2,
+          "biggest_hop": 25.2,
+          "targets": [
+            [
+              715.7361037389429,
+              51.32517928746718,
+              170.10242476854836
+            ]
+          ]
+        }
+      },
+      {
+        "id": "tilt1",
+        "title": "Tilt: start",
+        "state": "done",
+        "result": "Reached target (within 0.04\u00b0).",
+        "plan": {
+          "note": "Tilt 0\u00b0 to 60\u00b0, lip held over the cup",
+          "waypoints": 13,
+          "seconds": 12.0,
+          "biggest_joint_change": 60.0,
+          "biggest_hop": 5.1,
+          "targets": [
+            [
+              716.2517102929335,
+              46.77707965077814,
+              172.7696276755163
+            ],
+            [
+              716.7465671280391,
+              42.41201063732612,
+              175.08048213168547
+            ],
+            [
+              717.2169080849419,
+              38.263193058004205,
+              177.0174011393124
+            ],
+            [
+              717.6591535849602,
+              34.362201919715595,
+              178.56564357520526
+            ],
+            [
+              718.0699378728038,
+              30.73872612050551,
+              179.71342637957264
+            ],
+            [
+              718.4461346320038,
+              27.42034249912046,
+              180.45201423222306
+            ],
+            [
+              718.7848807780689,
+              24.432305958613973,
+              180.77578603362633
+            ],
+            [
+              719.083598248287,
+              21.797357261285114,
+              180.68227768487506
+            ],
+            [
+              719.3400136223393,
+              19.535549957746078,
+              180.17220084096505
+            ],
+            [
+              719.5521754244012,
+              17.66409776729339,
+              179.2494374946713
+            ],
+            [
+              719.7184689750525,
+              16.1972435711101,
+              177.92101043223883
+            ],
+            [
+              719.8376286799618,
+              15.146151015339981,
+              176.19702978573903
+            ]
+          ]
+        }
+      },
+      {
+        "id": "tilt2",
+        "title": "Tilt: pouring",
+        "state": "done",
+        "result": "Reached target (within 0.04\u00b0).",
+        "plan": {
+          "note": "Tilt 60\u00b0 to 100\u00b0, lip held over the cup",
+          "waypoints": 9,
+          "seconds": 7.9,
+          "biggest_joint_change": 39.5,
+          "biggest_hop": 5.0,
+          "targets": [
+            [
+              719.908747661824,
+              14.518819548999453,
+              174.09061608885963
+            ],
+            [
+              719.9312846622446,
+              14.320023543340469,
+              171.6178004217213
+            ],
+            [
+              719.9050681610421,
+              14.551275956002407,
+              168.7974024046779
+            ],
+            [
+              719.8302976816204,
+              15.210816816490883,
+              166.00664600429906
+            ],
+            [
+              719.7075422724758,
+              16.293626620615925,
+              170.8466416245333
+            ],
+            [
+              719.5377361763937,
+              17.7914645319497,
+              175.57324199344276
+            ],
+            [
+              719.3221717202966,
+              19.692931099567694,
+              180.15047482822067
+            ],
+            [
+              719.0624894798572,
+              21.98355501475345,
+              184.5435046231856
+            ]
+          ]
+        }
+      },
+      {
+        "id": "tilt3",
+        "title": "Tilt: empty",
+        "state": "done",
+        "result": "Reached target (within 0.04\u00b0).",
+        "plan": {
+          "note": "Tilt 100\u00b0 to 135\u00b0, lip held over the cup",
+          "waypoints": 8,
+          "seconds": 7.0,
+          "biggest_joint_change": 34.8,
+          "biggest_hop": 5.0,
+          "targets": [
+            [
+              718.7606657937254,
+              24.645903246395847,
+              188.718897769014
+            ],
+            [
+              718.4189977223989,
+              27.65971371688228,
+              192.64487700269478
+            ],
+            [
+              718.0400855662053,
+              31.002049508743823,
+              196.29156325168856
+            ],
+            [
+              717.6268130754468,
+              34.6474734284469,
+              199.63120303171115
+            ],
+            [
+              717.1823255033185,
+              38.56824159879541,
+              202.63837966750688
+            ],
+            [
+              716.7100056686335,
+              42.734514606588455,
+              205.29020672909454
+            ],
+            [
+              716.2134482105281,
+              47.1145845985723,
+              207.56650221131844
+            ]
+          ]
+        }
+      },
+      {
+        "id": "drain",
+        "title": "Let it drain",
+        "state": "done",
+        "result": "Drain time finished.",
+        "plan": null
+      },
+      {
+        "id": "untilt",
+        "title": "Tilt back upright",
+        "state": "done",
+        "result": "Reached target (within 0.04\u00b0).",
+        "plan": {
+          "note": "Same path back to upright",
+          "waypoints": 28,
+          "seconds": 26.9,
+          "biggest_joint_change": 134.3,
+          "biggest_hop": 5.1,
+          "targets": [
+            [
+              715.7361037389429,
+              51.32517928746718,
+              170.10242476854836
+            ]
+          ]
+        }
+      },
+      {
+        "id": "return",
+        "title": "Carry back",
+        "state": "done",
+        "result": "Reached target (within 0.04\u00b0).",
+        "plan": {
+          "note": "Same path back above the flask's spot",
+          "waypoints": 2,
+          "seconds": 5.0,
+          "biggest_joint_change": 25.2,
+          "biggest_hop": 25.2,
+          "targets": [
+            [
+              546.4167394084444,
+              60.57425531519489,
+              158.96069455845674
+            ]
+          ]
+        }
+      },
+      {
+        "id": "lower",
+        "title": "Set flask down",
+        "state": "done",
+        "result": "Reached target (within 0.04\u00b0).",
+        "plan": {
+          "note": "Straight down to the exact pose where the flask was gripped",
+          "waypoints": 46,
+          "seconds": 3.7,
+          "biggest_joint_change": 18.5,
+          "biggest_hop": 0.4,
+          "targets": [
+            [
+              546.4167394084444,
+              60.57425531519489,
+              48.96069455845672
+            ]
+          ]
+        }
+      },
+      {
+        "id": "release",
+        "title": "Release flask",
+        "state": "done",
+        "result": "Gripper open.",
+        "plan": null
+      },
+      {
+        "id": "retreat",
+        "title": "Back away",
+        "state": "done",
+        "result": "Reached target (within 0.04\u00b0).",
+        "plan": {
+          "note": "Straight back out, away from the flask",
+          "waypoints": 23,
+          "seconds": 1.5,
+          "biggest_joint_change": 7.3,
+          "biggest_hop": 0.3,
+          "targets": [
+            [
+              491.8869029693965,
+              57.98938807264644,
+              55.65512502482802
+            ]
+          ]
+        }
+      },
+      {
+        "id": "home",
+        "title": "Back to overhead view",
+        "state": "done",
+        "result": "Reached target (within 0.04\u00b0).",
+        "plan": {
+          "note": "Back to the overhead view",
+          "waypoints": 22,
+          "seconds": 33.6,
+          "biggest_joint_change": 159.1,
+          "biggest_hop": 22.9,
+          "targets": []
+        }
+      },
+      {
+        "id": "verify",
+        "title": "Check final position",
+        "state": "done",
+        "result": "Flask (587, 55), mouth 101 mm. Cup (750, 85), rim 106 mm. Flask is 8.1 mm from where it started.",
+        "plan": null
+      },
+      {
+        "id": "endpos",
+        "title": "Return to home",
+        "state": "current",
+        "result": null,
+        "plan": {
+          "note": "Avoids the measured flask and cup",
+          "waypoints": 3,
+          "seconds": 21.6,
+          "biggest_joint_change": 107.9,
+          "biggest_hop": 107.9,
+          "targets": [
+            [
+              181.78521626768253,
+              4.698605587855937,
+              358.49491116216495
+            ]
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -23,6 +23,9 @@ async def connect():
         api_key=_require('VIAM_API_KEY'),
         api_key_id=_require('VIAM_API_KEY_ID')
     )
+    # The SDK's check gives up after three 1-second timeouts and closes the connection, cancelling
+    # anything running on it, including an arm move. Large depth frames can delay it that long.
+    opts.check_connection_interval = 3600
 
     return await RobotClient.at_address(_require('VIAM_ADDRESS'), opts)
 

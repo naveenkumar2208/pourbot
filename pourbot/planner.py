@@ -32,17 +32,21 @@ def box(label, x0, x1, y0, y1, z0, z1):
 class Layout:
     """Where everything goes, all derived from the scene and settings.json."""
 
-    def __init__(self, scene):
+    def __init__(self, scene, vessel=None):
+        """`vessel` is the container being poured; every other one is just an obstacle."""
         self.s = SETTINGS
         self.scene = scene
-        self.flask, self.cup = scene["flask"], scene["cup"]
-        self.neck_below = self.s["flask"]["grip_below_mouth_mm"]
-        self.base_r = self.s["flask"]["base_diameter_mm"] / 2
-        self.depth = self.s["grasp"]["neck_depth_in_gripper_mm"]
+        self.cup = scene["cup"]
         self.table_z = scene["table_z"]
-        self.flask_height = self.flask["rim_z"] - self.table_z
-        self.mouth_r = self.flask["radius"]
-        self.neck_z = self.flask["rim_z"] - self.neck_below
+        self.depth = self.s["grasp"]["neck_depth_in_gripper_mm"]
+        self.flask = vessel
+        self.others = [v for v in scene.get("vessels", []) if vessel is None or v["id"] != vessel["id"]]
+        if vessel:
+            self.base_r = vessel["base_diameter"] / 2
+            self.flask_height = vessel["rim_z"] - self.table_z
+            self.mouth_r = vessel["radius"]
+            self.neck_z = self.table_z + vessel["grip_height"]
+            self.neck_below = vessel["rim_z"] - self.neck_z
 
     @staticmethod
     def radial(x, y):
@@ -97,7 +101,9 @@ class Layout:
         return rotate @ R0, lip_world - rotate @ lip_from_grip_point
 
     def overhead_camera(self):
-        mid = np.array([(self.flask["x"] + self.cup["x"]) / 2, (self.flask["y"] + self.cup["y"]) / 2])
+        items = self.scene["vessels"] + [self.cup]
+        xs, ys = [i["x"] for i in items], [i["y"] for i in items]
+        mid = np.array([(min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2])
         return dict(x=float(mid[0]), y=float(mid[1]), z=self.table_z + self.s["overhead"]["camera_height_mm"])
 
     def world_state(self, holding, flask_on_table, include_neck=True):
@@ -106,10 +112,19 @@ class Layout:
         c = self.cup
         half = self.s["cup"]["outer_diameter_mm"] / 2 + 3
         obstacles.append(box("cup", c["x"] - half, c["x"] + half, c["y"] - half, c["y"] + half, z0, c["rim_z"]))
-        if flask_on_table:
-            top = self.flask["rim_z"] if include_neck else z0 + 12  # fingers must reach the flask, so only its foot is modelled
-            f, r = self.flask, self.base_r
-            obstacles.append(box("flask", f["x"] - r, f["x"] + r, f["y"] - r, f["y"] + r, z0, top))
+        def add_vessel(v, label, include_neck):
+            # A wide body below the fingers and a narrow neck above it; the fingers must be able to reach the neck.
+            r = v.get("base_diameter", 100) / 2
+            shoulder = max(z0 + 12, z0 + v.get("grip_height", 90) - 35)
+            obstacles.append(box(label, v["x"] - r, v["x"] + r, v["y"] - r, v["y"] + r, z0, shoulder))
+            if include_neck:
+                n = v["radius"] + 5
+                obstacles.append(box(f"{label}-neck", v["x"] - n, v["x"] + n, v["y"] - n, v["y"] + n, shoulder, v["rim_z"]))
+
+        if flask_on_table and self.flask:
+            add_vessel(self.flask, "flask", include_neck)
+        for v in self.others:
+            add_vessel(v, f"container-{v['id']}", True)
         for i, b in enumerate(self.scene.get("obstacles", [])):
             obstacles.append(box(f"seen-{i}", b["x0"], b["x1"], b["y0"], b["y1"], z0, b["top_z"]))
         transforms = [Transform(
@@ -117,17 +132,25 @@ class Layout:
             pose_in_observer_frame=PoseInFrame(reference_frame="arm", pose=Pose(x=83, y=-27, z=18, o_z=1)),
             physical_object=box("wrist-camera-body", -13, 13, -46, 46, -13, 13))]  # D435 body
         if holding:
-            length = self.flask_height - 10
             flask_up = self.upright(self.radial(self.flask["x"], self.flask["y"])).T @ UP
-            center = np.array([0, 0, self.depth]) + flask_up * (self.neck_below - length / 2)
+            grip_point = np.array([0, 0, self.depth])
             ox, oy, oz = map(float, flask_up)
-            transforms.append(Transform(
-                reference_frame="held-flask",
-                pose_in_observer_frame=PoseInFrame(reference_frame="gripper", pose=Pose(o_z=1)),
-                physical_object=Geometry(
-                    label="held-flask",
-                    center=Pose(x=float(center[0]), y=float(center[1]), z=float(center[2]), o_x=ox, o_y=oy, o_z=oz),
-                    capsule=Capsule(radius_mm=self.base_r, length_mm=max(length, 2 * self.base_r + 1)))))
+
+            def held(label, radius, low, high):
+                """Capsule along the flask's axis, between two heights measured from the grip point."""
+                center = grip_point + flask_up * ((low + high) / 2)
+                return Transform(
+                    reference_frame=label,
+                    pose_in_observer_frame=PoseInFrame(reference_frame="gripper", pose=Pose(o_z=1)),
+                    physical_object=Geometry(
+                        label=label,
+                        center=Pose(x=float(center[0]), y=float(center[1]), z=float(center[2]), o_x=ox, o_y=oy, o_z=oz),
+                        capsule=Capsule(radius_mm=radius, length_mm=max(high - low, 2 * radius + 1))))
+
+            bottom = -(self.neck_z - z0) + 10
+            body_top = bottom + max(0.6 * (self.flask_height - 10), 2 * self.base_r + 1)
+            transforms.append(held("held-flask", self.base_r, bottom, body_top))
+            transforms.append(held("held-flask-neck", self.mouth_r, body_top - self.mouth_r, self.neck_below))
         return WorldState(obstacles=[GeometriesInFrame(reference_frame="world", geometries=obstacles)],
                           transforms=transforms)
 
@@ -158,7 +181,7 @@ class Planner:
         target = home["joints_deg"]
         if max(abs(a - b) for a, b in zip(start_deg, target)) < 0.5:
             return dict(waypoints=[list(start_deg), list(target)], targets=[], note="Already at home")
-        if scene and scene.get("flask") and scene.get("cup"):
+        if scene and scene.get("vessels") and scene.get("cup"):
             world, note = Layout(scene).world_state(holding=False, flask_on_table=True), "Avoids the measured flask and cup"
         else:
             world, note = None, "Flask and cup are not measured yet, so watch the path"
@@ -185,9 +208,9 @@ class Planner:
             raise PlanningError(f"No overhead view reachable: {last_error}")
         return dict(waypoints=best[1], targets=[[spot["x"], spot["y"], spot["z"]]], note="Camera looks straight down")
 
-    async def pour_sequence(self, scene, start_deg):
-        """Plan every step in order, each one starting where the last ended."""
-        layout = Layout(scene)
+    async def pour_sequence(self, scene, vessel, start_deg):
+        """Plan one container's whole pour, each move starting where the last ended."""
+        layout = Layout(scene, vessel)
         steps = {}
         joint_now = list(start_deg)
 

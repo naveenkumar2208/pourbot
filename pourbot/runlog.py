@@ -96,7 +96,7 @@ class RunLog:
             self.step_row = None
 
     def scene(self, step_id, scene, at=None):
-        flask, cup = scene.get("flask") or {}, scene.get("cup") or {}
+        flask, cup = (scene.get("vessels") or [{}])[0], scene.get("cup") or {}
         self._write("INSERT INTO scenes (run_id, at, step_id, flask_x, flask_y, flask_z, cup_x, cup_y, cup_z, table_z, scene_json) "
                     "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
                     (self.run_id, at or now(), step_id, flask.get("x"), flask.get("y"), flask.get("rim_z"),

@@ -29,7 +29,8 @@ const act = fn => async (...a) => { try { await fn(...a); } catch (e) { alert(e.
 const stopNow = () => post("/api/stop").catch(e => alert("STOP FAILED: " + e.message + ". Use the hardware e-stop."));
 $("stop").onclick = stopNow;
 document.addEventListener("keydown", e => {
-  if (e.code === "Space" && !["INPUT", "BUTTON"].includes(e.target.tagName)) { e.preventDefault(); stopNow(); }
+  // Space must stop the arm even when a button still has focus from being clicked.
+  if (e.code === "Space" && e.target.tagName !== "INPUT") { e.preventDefault(); stopNow(); }
 });
 $("clear").onclick = act(() => post("/api/clear-stop"));
 $("home").onclick = act(async () => {
@@ -42,6 +43,11 @@ $("restart").onclick = act(async () => {
   if (confirm("Restart from the first step? Nothing moves, but all measurements and plans are discarded.")) await post("/api/restart");
 });
 $("run").onclick = act(() => post(`/api/run/${state.steps[state.current].id}`));
+$("play").onclick = act(async () => {
+  if (state.playing) { await post("/api/pause"); return; }
+  const action = state.dry_run ? "simulate" : "move the arm through";
+  if (confirm(`Brew will ${action} every remaining step without asking again. It pauses once for you to choose your potions.\n\nKeep a hand on the hardware e-stop. It ends on its own if a step fails, and Space or STOP halts it.`)) await post("/api/play");
+});
 
 function render() {
   const s = state, st = s.status;
@@ -59,10 +65,12 @@ function render() {
   const finished = s.current >= s.steps.length;
   const step = finished ? null : s.steps[s.current];
   $("stepcount").textContent = finished ? "Finished" : `Step ${s.current + 1} of ${s.steps.length}`;
-  $("title").textContent = finished ? "Pour complete" : step.title;
-  $("text").textContent = finished ? "The flask is back and the arm is at home. Check the result, then press Restart for another run." : step.text;
+  $("title").textContent = finished ? "The potion is brewed" : step.title;
+  $("text").textContent = finished ? "The containers are back and the arm is at home. Check the result, then press Restart for another brew." : step.text;
 
   renderChecklist(step);
+  renderChooser(step);
+  renderCauldron(finished);
   renderPlan(step);
   renderProgress();
 
@@ -77,13 +85,17 @@ function render() {
 
   const needsChecks = step && step.kind === "check" && !Object.keys(checkItems).every(k => s.checks[k]);
   const needsPlan = step && step.kind === "motion" && !step.plan && !["startpos", "endpos"].includes(step.id);
-  $("run").disabled = finished || !!s.busy || s.stopped || !st.connected || !socketOpen || needsChecks || needsPlan;
+  $("run").disabled = finished || !!s.busy || s.playing || s.stopped || !st.connected || !socketOpen || needsChecks || needsPlan || (step && step.kind === "choose" && !s.selection.length);
+  const needsChoice = step && step.kind === "choose" && !s.selection.length;
+  $("play").disabled = !s.playing && (finished || !!s.busy || s.stopped || !st.connected || !socketOpen || needsChecks || needsChoice);
+  $("play").innerHTML = s.playing ? "&#10074;&#10074; Pause after this step" : "&#9654; Brew potion";
+  $("play").className = "play" + (s.playing ? " on" : "");
   $("run").textContent = !step ? "Done" : s.busy ? "Running…" :
     step.kind === "motion" ? (s.dry_run ? "Simulate this move" : "Move the arm") :
     step.kind === "gripper" ? (s.dry_run ? "Simulate gripper" : "Move the gripper") :
     step.kind === "check" ? "Confirm" : step.kind === "plan" ? "Rehearse now" :
-    step.kind === "hold" ? "Start drain timer" : "Measure now";
-  $("restart").disabled = !!s.busy;
+    step.kind === "choose" ? "Use these potions" : "Measure now";
+  $("restart").disabled = !!s.busy || s.playing;
   $("home").disabled = !!s.home_blocked;
   $("home").title = s.home_blocked || "Move the arm to the saved home position";
 
@@ -104,6 +116,40 @@ function renderChecklist(step) {
   box.querySelectorAll("input").forEach(i => { i.checked = !!state.checks[i.dataset.key]; });
 }
 
+function renderChooser(step) {
+  const box = $("chooser"), sc = state.scene;
+  if (!step || step.kind !== "choose" || !sc || !sc.vessels) { box.innerHTML = ""; delete box.dataset.key; return; }
+  const key = JSON.stringify([sc.vessels.map(v => [v.id, v.profile, Math.round(v.height)]), state.selection, !!state.busy || state.playing]);
+  if (box.dataset.key === key) return;
+  box.dataset.key = key;
+  box.innerHTML = `<div class="potions">${sc.vessels.map(v => {
+    const at = state.selection.indexOf(v.id);
+    const note = v.usable ? `${esc(v.profile)}, ${fmt(v.height)} mm tall` : `${fmt(v.height)} mm tall, needs setup in settings.json`;
+    return `<button class="potion ${at >= 0 ? "on" : ""}" data-id="${esc(v.id)}" ${v.usable ? "" : "disabled"} aria-pressed="${at >= 0}">
+      <span class="num">${at >= 0 ? at + 1 : ""}</span><span><b>Container ${esc(v.id)}</b><small>${note}</small></span></button>`;
+  }).join("")}</div>`;
+  box.querySelectorAll("button").forEach(b => {
+    b.onclick = act(() => {
+      const id = b.dataset.id, ids = state.selection.includes(id) ? state.selection.filter(x => x !== id) : [...state.selection, id];
+      return post("/api/select", {ids});
+    });
+  });
+}
+
+const NAMES = [["Moonlit", "Elixir"], ["Cursed", "Draught"], ["Howling", "Tonic"], ["Bewitched", "Brew"], ["Midnight", "Philter"], ["Phantom", "Nectar"], ["Grim", "Cordial"], ["Hexed", "Serum"]];
+
+function renderCauldron(finished) {
+  const s = state, total = s.selection.length || 1, share = s.poured / total;
+  $("liquid").setAttribute("y", 148 - 74 * share);
+  $("cauldron").classList.toggle("brewing", s.pouring || s.playing);
+  const seed = [...s.selection.join("")].reduce((n, c) => n * 7 + c.charCodeAt(0), 3);
+  const name = NAMES[seed % NAMES.length].join(" ");
+  $("brewline").textContent = finished && s.selection.length ? `You brewed: ${name}` :
+    !s.selection.length ? "Choose your potions" : s.pouring ? "The cauldron bubbles..." : `${s.poured} of ${s.selection.length} poured`;
+  $("recipe").innerHTML = s.selection.map((id, i) =>
+    `<li class="${i < s.poured ? "done" : ""}">${i < s.poured ? "\u2713" : `${i + 1}.`} Container ${esc(id)}</li>`).join("");
+}
+
 function renderPlan(step) {
   const p = step && step.plan;
   if (!p) { $("plan").innerHTML = ""; return; }
@@ -118,7 +164,6 @@ function renderProgress() {
   const s = state, bar = $("progress");
   let share = null;
   if (s.progress && s.progress.total) share = s.progress.done / s.progress.total;
-  if (s.hold_left != null) share = 1 - s.hold_left / s.drain;
   bar.hidden = share == null && !s.busy;
   bar.firstElementChild.style.width = share == null ? "100%" : `${Math.min(100, share * 100)}%`;
   bar.firstElementChild.style.opacity = share == null ? ".35" : "1";
@@ -162,28 +207,27 @@ function startFeed(name) {
 
 function renderScene() {
   const sc = state.scene;
-  if (!sc || !sc.flask || !sc.cup) { $("measures").textContent = sc && sc.problems.length ? sc.problems.join("; ") : "Not measured yet."; $("nudges").innerHTML = ""; return; }
-  const row = (n, o, z) => `<tr><td>${n}</td><td>${fmt(o.x)}</td><td>${fmt(o.y)}</td><td>${fmt(o[z])}</td><td>${fmt(o.radius * 2)}</td></tr>`;
+  if (!sc || !sc.vessels || !sc.vessels.length || !sc.cup) { $("measures").textContent = sc && sc.problems.length ? [...new Set(sc.problems)].join("; ") : "Not measured yet."; $("nudges").innerHTML = ""; delete $("nudges").dataset.key; return; }
+  const row = (n, o) => `<tr><td>${n}</td><td>${fmt(o.x)}</td><td>${fmt(o.y)}</td><td>${fmt(o.rim_z)}</td><td>${fmt(o.radius * 2)}</td></tr>`;
   const warns = [];
-  if (sc.table_tilt_deg > 1) warns.push(`The table looks ${fmt(sc.table_tilt_deg, 1)}° tilted to the camera. It may be camera calibration; watch the first grip closely.`);
-  if (sc.flask.height < 90) warns.push("Flask height looks low.");
+  if (sc.table_tilt_deg > 1) warns.push(`The table looks ${fmt(sc.table_tilt_deg, 1)}\u00b0 tilted to the camera. It may be camera calibration; watch the first grip closely.`);
   for (const [name, mm] of Object.entries(sc.disagreement_mm)) if (mm > 8) warns.push(`Cameras disagree on the ${name} by ${fmt(mm)} mm.`);
   $("measures").innerHTML = `<table><tr><th>mm</th><th>x</th><th>y</th><th>z</th><th>width</th></tr>
-    ${row("Flask mouth", sc.flask, "rim_z")}${row("Cup rim", sc.cup, "rim_z")}
+    ${sc.vessels.map(v => row(`Container ${esc(v.id)}`, v)).join("")}${row("Cup rim", sc.cup)}
     <tr><td>Table</td><td></td><td></td><td>${fmt(sc.table_z)}</td><td></td></tr></table>
     ${sc.obstacles.length ? `<div class="warn">${sc.obstacles.length} other object${sc.obstacles.length > 1 ? "s" : ""} on the table will be avoided.</div>` : ""}
     ${warns.map(w => `<div class="warn">${esc(w)}</div>`).join("")}`;
 
-  const idx = state.steps.findIndex(s => s.id === "approach");
-  const open = state.current <= idx && !state.busy;
   const box = $("nudges");
-  const key = open ? "open" : "closed";
+  const open = state.can_change_positions && !state.busy && !state.playing;
+  const items = [...sc.vessels.map(v => [v.id, `Container ${v.id}`]), ["cup", "Cup"]];
+  const key = open ? items.map(i => i[0]).join() : "closed";
   if (box.dataset.key !== key) {
     box.dataset.key = key;
-    box.innerHTML = !open ? "" : ["flask", "cup"].map(item => `<div class="nudge"><b>${item === "flask" ? "Flask" : "Cup"}</b>
+    box.innerHTML = !open ? "" : items.map(([item, label]) => `<div class="nudge"><b>${esc(label)}</b>
       ${["x", "y", "z"].map(a => `<span>${a}
-        <button data-i="${item}" data-a="${a}" data-m="-2" aria-label="${item} ${a} minus 2 millimetres">−2</button>
-        <button data-i="${item}" data-a="${a}" data-m="2" aria-label="${item} ${a} plus 2 millimetres">+2</button></span>`).join("")}
+        <button data-i="${esc(item)}" data-a="${a}" data-m="-2" aria-label="${esc(label)} ${a} minus 2 millimetres">\u22122</button>
+        <button data-i="${esc(item)}" data-a="${a}" data-m="2" aria-label="${esc(label)} ${a} plus 2 millimetres">+2</button></span>`).join("")}
     </div>`).join("");
     box.querySelectorAll("button").forEach(b => { b.onclick = act(() => post("/api/nudge", {item: b.dataset.i, axis: b.dataset.a, mm: +b.dataset.m})); });
   }
@@ -193,16 +237,20 @@ function renderMaps(step) {
   const sc = state.scene, st = state.status;
   const topX = x => (x - 150) * 400 / 800, topY = y => 150 - y * 300 / 600;
   const sideX = topX, sideZ = z => 270 - (z + 20) * 0.5;
-  let top = `<line x1="${topX(0)}" y1="0" x2="${topX(0)}" y2="300" stroke="#e3e6e1"/>`;
-  let side = `<line x1="0" y1="${sideZ(0)}" x2="400" y2="${sideZ(0)}" stroke="#b9bfb8"/>`;
-  top += `<text x="6" y="294">x increases to the right; base is off the left edge</text>`;
-  if (sc && sc.flask && sc.cup && state.layout) {
-    const l = state.layout, f = sc.flask, c = sc.cup;
-    top += `<circle cx="${topX(f.x)}" cy="${topY(f.y)}" r="${l.base_r / 2}" fill="#1f6fd122" stroke="var(--flask)" stroke-width="2"/>`;
-    top += `<circle cx="${topX(c.x)}" cy="${topY(c.y)}" r="${l.cup_half / 2}" fill="#c8322b22" stroke="var(--cup)" stroke-width="2"/>`;
+  let top = `<line x1="${topX(0)}" y1="0" x2="${topX(0)}" y2="300" stroke="#3b2a5c"/>`;
+  let side = `<line x1="0" y1="${sideZ(0)}" x2="400" y2="${sideZ(0)}" stroke="#6d5a90"/>`;
+  top += `<text class="hint" x="6" y="294">x increases to the right; base is off the left edge</text>`;
+  if (sc && sc.vessels && sc.cup) {
+    const c = sc.cup, half = state.cup_half;
+    for (const v of sc.vessels) {
+      const r = (v.base_diameter || 100) / 2, picked = state.selection.includes(v.id);
+      const color = picked ? "var(--picked)" : "var(--flask)";
+      top += `<circle cx="${topX(v.x)}" cy="${topY(v.y)}" r="${r / 2}" fill="none" stroke="${color}" stroke-width="2"/><text x="${topX(v.x) - 4}" y="${topY(v.y) + 4}">${esc(v.id)}</text>`;
+      side += `<rect x="${sideX(v.x) - r / 2}" y="${sideZ(v.rim_z)}" width="${r}" height="${sideZ(sc.table_z) - sideZ(v.rim_z)}" fill="none" stroke="${color}" stroke-width="2"/>`;
+    }
+    top += `<circle cx="${topX(c.x)}" cy="${topY(c.y)}" r="${half / 2}" fill="#ff5a5033" stroke="var(--cup)" stroke-width="2"/>`;
     for (const b of sc.obstacles) top += `<rect x="${topX(b.x0)}" y="${topY(b.y1)}" width="${(b.x1 - b.x0) / 2}" height="${(b.y1 - b.y0) / 2}" fill="#8882" stroke="#888"/>`;
-    side += `<rect x="${sideX(f.x) - l.base_r / 2}" y="${sideZ(f.rim_z)}" width="${l.base_r}" height="${sideZ(sc.table_z) - sideZ(f.rim_z)}" fill="#1f6fd122" stroke="var(--flask)" stroke-width="2"/>`;
-    side += `<rect x="${sideX(c.x) - l.cup_half / 2}" y="${sideZ(c.rim_z)}" width="${l.cup_half}" height="${sideZ(sc.table_z) - sideZ(c.rim_z)}" fill="#c8322b22" stroke="var(--cup)" stroke-width="2"/>`;
+    side += `<rect x="${sideX(c.x) - half / 2}" y="${sideZ(c.rim_z)}" width="${half}" height="${sideZ(sc.table_z) - sideZ(c.rim_z)}" fill="#ff5a5033" stroke="var(--cup)" stroke-width="2"/>`;
   }
   const targets = (step && step.plan && step.plan.targets) || [];
   targets.forEach(t => {
