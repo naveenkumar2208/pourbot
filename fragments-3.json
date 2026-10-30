@@ -1,0 +1,122 @@
+{
+    "components": [
+      {
+        "api": "rdk:component:gripper",
+        "attributes": {
+          "geometries": [
+            {
+              "label": "wall-back",
+              "type": "box",
+              "x": 50,
+              "y": 1500,
+              "z": 1024
+            }
+          ]
+        },
+        "frame": {
+          "orientation": {
+            "type": "ov_degrees",
+            "value": {
+              "th": 0,
+              "x": 0,
+              "y": 0,
+              "z": 1
+            }
+          },
+          "parent": "world",
+          "translation": {
+            "x": -550,
+            "y": 0,
+            "z": 488
+          }
+        },
+        "model": "erh:vmodutils:obstacle",
+        "name": "wall-back",
+        "ui_folder": {
+          "name": "obstacles"
+        }
+      },
+      {
+        "api": "rdk:component:gripper",
+        "attributes": {
+          "geometries": [
+            {
+              "label": "wall-left",
+              "type": "box",
+              "x": 1500,
+              "y": 50,
+              "z": 1024
+            }
+          ]
+        },
+        "frame": {
+          "orientation": {
+            "type": "ov_degrees",
+            "value": {
+              "th": 0,
+              "x": 0,
+              "y": 0,
+              "z": 1
+            }
+          },
+          "parent": "world",
+          "translation": {
+            "x": 0,
+            "y": 650,
+            "z": 488
+          }
+        },
+        "model": "erh:vmodutils:obstacle",
+        "name": "wall-left",
+        "ui_folder": {
+          "name": "obstacles"
+        }
+      }
+    ],
+    "fragment_mods": [
+      {
+        "fragment_id": "086f4921-8427-47b6-92e0-dbdc87f2267c",
+        "mods": [
+          {
+            "$set": {
+              "components.arm.attributes.host": "192.168.1.227"
+            }
+          }
+        ]
+      }
+    ],
+    "fragments": [
+      {
+        "id": "fd2be28c-71e5-4b8a-90a8-a514dbe75ca7",
+        "variables": {
+          "arm-ip-address": "192.168.1.227",
+          "arm-name": "arm",
+          "base-axis-rotation-degrees": 0,
+          "cam-serial-number": "",
+          "translation": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      {
+        "id": "aacb5963-53c1-4285-993a-165868c43baa",
+        "variables": {
+          "ceiling-translation": {
+            "x": 0,
+            "y": 0,
+            "z": 1050
+          },
+          "table-translation": {
+            "x": 0,
+            "y": 0,
+            "z": -123
+          }
+        }
+      },
+      {
+        "id": "b511adfa-80ab-4a70-9bd5-fbb14696b17e"
+      }
+    ]
+  }

@@ -1,0 +1,11 @@
+{
+  "reference_frame": "beaker-spout",
+  "pose_in_observer_frame": {
+    "reference_frame": "gripper",
+    "pose": {
+      "x": 155.0,
+      "z": 75.0,
+      "o_z": 1.0
+    }
+  }
+}

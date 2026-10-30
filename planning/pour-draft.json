@@ -1,0 +1,88 @@
+{
+  "status": "DRAFT_LOCAL_ONLY_NOT_EXECUTABLE",
+  "reference_pose_file": "poses/20261030T013247979102Z.json",
+  "coordinate_convention": {
+    "frame": "contact_sketch",
+    "origin": "finger-contact center",
+    "x": "horizontal toward spout in upright pouring plane",
+    "y": "perpendicular to pouring plane",
+    "z": "up when beaker upright",
+    "warning": "This is NOT the Viam gripper frame or a calibrated world frame."
+  },
+  "measurements_mm": {
+    "body_diameter": 111,
+    "body_height": 142,
+    "contact_to_body_center_horizontal": 80,
+    "contact_height_above_base": 61,
+    "handle_bottom_above_base": 42,
+    "handle_vertical_extent": 86,
+    "handle_projection": 28,
+    "spout_projection_beyond_body": 20,
+    "direct_contact_to_spout_horizontal": 140,
+    "direct_contact_to_spout_vertical": 75,
+    "reported_spout_to_cup_rim_gap": 175,
+    "cup_height": 111,
+    "cup_outer_diameter": 100
+  },
+  "draft_spout_in_contact_sketch_mm": [
+    140,
+    0,
+    75
+  ],
+  "body_center_in_contact_sketch_mm": [
+    80,
+    0,
+    10
+  ],
+  "cross_checks_mm": {
+    "spout_x_from_body_dimensions": 155.5,
+    "spout_z_from_body_height": 81,
+    "difference_from_direct_measurement_x": 15.5,
+    "difference_from_direct_measurement_z": 6
+  },
+  "unknowns": {
+    "contact_sketch_to_viam_gripper_transform": null,
+    "cup_world_pose": null,
+    "cup_inner_diameter": null,
+    "handle_thickness_and_width": null,
+    "calibrated_spout_pivot": null
+  },
+  "collision_model_draft": {
+    "body": "111 mm diameter by 142 mm tall cylinder, centered at [80,0,10] in contact_sketch; no added clearance yet",
+    "handle": "dimensions recorded, thickness/width and exact grip geometry unresolved",
+    "warning": "No collision world or motion plan has been validated."
+  },
+  "tilt_preview": {
+    "pivot": "hypothetical fixed spout at [140,0,75] in contact_sketch",
+    "angles_degrees": [
+      0,
+      5,
+      10
+    ],
+    "purpose": "Illustrates compensation needed to keep spout fixed; not robot targets",
+    "robot_commands_generated": false,
+    "illustrative_contact_positions_mm": [
+      {
+        "angle_degrees": 0,
+        "contact_xz": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "angle_degrees": 5,
+        "contact_xz": [
+          7.069422973229974,
+          -11.916406341553056
+        ]
+      },
+      {
+        "angle_degrees": 10,
+        "contact_xz": [
+          15.15052790331064,
+          -23.17132634928584
+        ]
+      }
+    ]
+  }
+}

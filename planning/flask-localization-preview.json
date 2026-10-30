@@ -1,0 +1,35 @@
+{
+  "status": "PERCEPTION_PREVIEW_NOT_ROBOT_TARGETS",
+  "table_plane_camera_normal": [
+    0.07051848159463169,
+    -0.6586014140832357,
+    -0.7491804329540043
+  ],
+  "table_plane_camera_offset_mm": 485.9497071794245,
+  "table_fit_inlier_fraction": 0.9969374560468229,
+  "flask_blue_region_pixel_center": [
+    488.97508348317496,
+    291.0133573079887
+  ],
+  "flask_blue_region_valid_depth_fraction": 0.9969175443103006,
+  "flask_blue_region_height_above_table_percentiles_mm": [
+    74.45173739497176,
+    89.08729434967734,
+    98.07991408808141
+  ],
+  "flask_blue_surface_camera_xyz_median_mm": [
+    -94.81597591201016,
+    -48.01328368902848,
+    560.0
+  ],
+  "cup_opening_pixel_center_approx": [
+    505,
+    102
+  ],
+  "limitations": [
+    "Blue patch is a visible surface, not neck center",
+    "Cup opening center is manually identified in image; world pose unresolved",
+    "Camera extrinsic accuracy not verified",
+    "No IK, gripper clearance or collision plan computed"
+  ]
+}

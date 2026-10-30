@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PourBot</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <div class="brand">PourBot <span id="mode" class="tag" hidden>DRY RUN: NOTHING MOVES</span></div>
+  <div id="connection" class="pill">Connecting</div>
+  <div id="motion" class="pill">-</div>
+  <div id="grip" class="pill">-</div>
+  <button id="home" class="ghost">Home</button>
+  <button id="stop" class="stop" title="Space bar also stops">STOP <kbd>Space</kbd></button>
+</header>
+
+<main>
+  <nav aria-label="Steps"><ol id="steps"></ol></nav>
+
+  <section class="work">
+    <div id="stopped" class="banner danger" hidden>
+      <b>Stopped.</b> The arm has been told to stop. Check the workspace, then clear the stop.
+      <button id="clear">Clear stop</button>
+    </div>
+
+    <article class="panel step">
+      <div class="eyebrow" id="stepcount"></div>
+      <h1 id="title"></h1>
+      <p id="text"></p>
+      <div id="checklist"></div>
+      <dl id="plan" class="facts"></dl>
+      <div id="progress" class="progress" hidden><div></div></div>
+      <div id="result" class="result" hidden></div>
+      <div id="failure" class="banner danger" hidden></div>
+      <div class="actions">
+        <button id="run" class="primary">Run this step</button>
+        <button id="restart" class="ghost">Restart</button>
+      </div>
+    </article>
+
+    <div class="views">
+      <article class="panel" id="cameras"></article>
+      <article class="panel">
+        <h2>Workspace</h2>
+        <div class="maps">
+          <figure><figcaption>From above</figcaption><svg id="top" viewBox="0 0 400 300"></svg></figure>
+          <figure><figcaption>From the side</figcaption><svg id="side" viewBox="0 0 400 300"></svg></figure>
+        </div>
+        <div class="legend"><span class="k flask"></span>Flask <span class="k cup"></span>Cup <span class="k grip"></span>Gripper now <span class="k target"></span>This step's target</div>
+      </article>
+    </div>
+
+    <div class="views">
+      <article class="panel" id="scene">
+        <h2>Measurements</h2>
+        <div id="measures">Not measured yet.</div>
+        <div id="nudges"></div>
+      </article>
+      <article class="panel">
+        <h2>Activity</h2>
+        <div id="log" class="log" role="log"></div>
+      </article>
+    </div>
+  </section>
+</main>
+<script src="/app.js"></script>
+</body>
+</html>

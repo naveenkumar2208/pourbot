@@ -1,0 +1,94 @@
+{
+    "components": [
+      {
+        "name": "table",
+        "api": "rdk:component:gripper",
+        "model": "erh:vmodutils:obstacle",
+        "attributes": {
+          "geometries": [
+            {
+              "label": "table",
+              "type": "box",
+              "x": 3000,
+              "y": 3000,
+              "z": 200
+            }
+          ]
+        },
+        "frame": {
+          "parent": "world",
+          "translation": {
+            "$variable": {
+              "name": "table-translation",
+              "default_value": {
+                "x": 0,
+                "y": 0,
+                "z": -123
+              }
+            }
+          },
+          "orientation": {
+            "type": "ov_degrees",
+            "value": {
+              "x": 0,
+              "y": 0,
+              "z": 1,
+              "th": 0
+            }
+          }
+        },
+        "ui_folder": {
+          "name": "obstacles"
+        }
+      },
+      {
+        "name": "ceiling",
+        "api": "rdk:component:gripper",
+        "model": "erh:vmodutils:obstacle",
+        "attributes": {
+          "geometries": [
+            {
+              "label": "ceiling",
+              "type": "box",
+              "x": 3000,
+              "y": 3000,
+              "z": 100
+            }
+          ]
+        },
+        "frame": {
+          "parent": "world",
+          "translation": {
+            "$variable": {
+              "name": "ceiling-translation",
+              "default_value": {
+                "x": 0,
+                "y": 0,
+                "z": 1050
+              }
+            }
+          },
+          "orientation": {
+            "type": "ov_degrees",
+            "value": {
+              "x": 0,
+              "y": 0,
+              "z": 1,
+              "th": 0
+            }
+          }
+        },
+        "ui_folder": {
+          "name": "obstacles"
+        }
+      }
+    ],
+    "modules": [
+      {
+        "type": "registry",
+        "name": "erh_vmodutils",
+        "module_id": "erh:vmodutils",
+        "version": "latest"
+      }
+    ]
+  }

@@ -1,0 +1,143 @@
+{
+    "components": [
+      {
+        "name": "arm",
+        "api": "rdk:component:arm",
+        "model": "viam:ufactory:xArm850",
+        "attributes": {
+          "collision_sensitivity": 0,
+          "host": {
+            "$variable": {
+              "name": "arm-ip-address"
+            }
+          },
+          "speed_degs_per_sec": 60,
+          "use_urdfs": true
+        },
+        "frame": {
+          "parent": "world",
+          "translation": {
+            "$variable": {
+              "name": "translation",
+              "default_value": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          "orientation": {
+            "type": "ov_degrees",
+            "value": {
+              "x": 0,
+              "y": 0,
+              "z": 1,
+              "th": {
+                "$variable": {
+                  "name": "base-axis-rotation-degrees",
+                  "default_value": 0
+                }
+              }
+            }
+          }
+        },
+        "ui_folder": {
+          "name": "hardware"
+        }
+      },
+      {
+        "name": "cam",
+        "api": "rdk:component:camera",
+        "model": "viam:camera:realsense",
+        "attributes": {
+          "align_color_depth": true,
+          "height_px": 720,
+          "little_endian_depth": false,
+          "sensors": [
+            "color",
+            "depth"
+          ],
+          "serial_number": {
+            "$variable": {
+              "name": "cam-serial-number"
+            }
+          },
+          "width_px": 1280
+        },
+        "frame": {
+          "parent": {
+            "$variable": {
+              "name": "arm-name"
+            }
+          },
+          "translation": {
+            "x": 83,
+            "y": -14,
+            "z": 18
+          },
+          "orientation": {
+            "type": "ov_degrees",
+            "value": {
+              "x": -0.030391,
+              "y": -0.003538,
+              "z": 0.999532,
+              "th": -97.731173
+            }
+          }
+        },
+        "ui_folder": {
+          "name": "hardware"
+        }
+      },
+      {
+        "name": "gripper",
+        "api": "rdk:component:gripper",
+        "model": "viam:ufactory:gripper",
+        "attributes": {
+          "arm": {
+            "$variable": {
+              "name": "arm-name"
+            }
+          }
+        },
+        "frame": {
+          "parent": {
+            "$variable": {
+              "name": "arm-name"
+            }
+          },
+          "translation": {
+            "x": 0,
+            "y": 0,
+            "z": 105
+          },
+          "orientation": {
+            "type": "quaternion",
+            "value": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          }
+        },
+        "ui_folder": {
+          "name": "hardware"
+        }
+      }
+    ],
+    "modules": [
+      {
+        "type": "registry",
+        "name": "viam_ufactory",
+        "module_id": "viam:ufactory",
+        "version": "latest"
+      },
+      {
+        "type": "registry",
+        "name": "viam_realsense",
+        "module_id": "viam:realsense",
+        "version": "latest"
+      }
+    ]
+  }

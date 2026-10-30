@@ -1,0 +1,44 @@
+{
+  "status": "OFFLINE_CANDIDATE_NOT_COLLISION_CHECKED_NOT_EXECUTABLE",
+  "baseline": "poses/20261030T020241959984Z.json",
+  "pivot_in_baseline_gripper_mm": [
+    155.0,
+    0.0,
+    75.0
+  ],
+  "rotation_axis": "baseline gripper local +Y; spout frame axes aligned with gripper",
+  "angle_degrees": 5,
+  "direction": "User states +5 degrees tips toward receiving cup",
+  "rotation_matrix_relative_to_baseline_gripper": [
+    [
+      0.9961946980917455,
+      0,
+      0.08715574274765817
+    ],
+    [
+      0,
+      1,
+      0
+    ],
+    [
+      -0.08715574274765817,
+      0,
+      0.9961946980917455
+    ]
+  ],
+  "required_gripper_origin_translation_in_baseline_gripper_axes_mm": [
+    -5.946858910294907,
+    0.0,
+    13.794537769006098
+  ],
+  "composition": "T_world_gripper_target = T_world_gripper_baseline * Translate(p) * RotateY(+5deg) * Translate(-p)",
+  "pivot_invariance_error_mm": 0.0,
+  "limitations": [
+    "No inverse kinematics or full trajectory computed",
+    "No collision check performed",
+    "Physical pivot offset unverified",
+    "Baseline may differ from current robot pose",
+    "Return path not planned"
+  ],
+  "robot_commands_sent": false
+}
